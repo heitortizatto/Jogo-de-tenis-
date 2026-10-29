@@ -18,18 +18,20 @@ let raqueteComputadorY = 250;
 let pontuacaoJogador = 0;
 let pontuacaoComputador = 0;
 
-// CONTROLE 1: Mouse (para o computador)
+// CONTROLE 1: Mouse
 canvas.addEventListener('mousemove', function(evento) {
     let retangulo = canvas.getBoundingClientRect();
-    let mousePosY = evento.clientY - retangulo.top;
+    let escalaY = canvas.height / retangulo.height; // Calcula a proporção da tela
+    let mousePosY = (evento.clientY - retangulo.top) * escalaY;
     raqueteJogadorY = mousePosY - (raqueteAltura / 2); 
 });
 
-// CONTROLE 2: Toque na tela (para o celular)
+// CONTROLE 2: Toque na tela (Celular)
 canvas.addEventListener('touchmove', function(evento) {
-    evento.preventDefault(); // Impede a tela de rolar enquanto joga
+    evento.preventDefault(); // Impede a tela do celular de rolar
     let retangulo = canvas.getBoundingClientRect();
-    let toquePosY = evento.touches[0].clientY - retangulo.top;
+    let escalaY = canvas.height / retangulo.height; // Calcula a proporção da tela
+    let toquePosY = (evento.touches[0].clientY - retangulo.top) * escalaY;
     raqueteJogadorY = toquePosY - (raqueteAltura / 2);
 }, { passive: false });
 
@@ -51,22 +53,22 @@ function moverTudo() {
         velocidadeBolaY = -velocidadeBolaY;
     }
 
-    // Verifica se a bola bateu na esquerda
+    // Verifica se a bola bateu na esquerda (Sua raquete ou Ponto do PC)
     if (bolaX < 0) {
         if (bolaY > raqueteJogadorY && bolaY < raqueteJogadorY + raqueteAltura) {
-            velocidadeBolaX = -velocidadeBolaX; 
+            velocidadeBolaX = -velocidadeBolaX; // Rebateu!
         } else {
-            pontuacaoComputador++; 
+            pontuacaoComputador++; // PC fez ponto
             resetarBola();
         }
     }
 
-    // Verifica se a bola bateu na direita
+    // Verifica se a bola bateu na direita (Raquete do PC ou Seu Ponto)
     if (bolaX > canvas.width) {
         if (bolaY > raqueteComputadorY && bolaY < raqueteComputadorY + raqueteAltura) {
-            velocidadeBolaX = -velocidadeBolaX; 
+            velocidadeBolaX = -velocidadeBolaX; // PC rebateu!
         } else {
-            pontuacaoJogador++; 
+            pontuacaoJogador++; // Você fez ponto!
             resetarBola();
         }
     }
@@ -76,31 +78,31 @@ function moverTudo() {
 function resetarBola() {
     bolaX = canvas.width / 2;
     bolaY = canvas.height / 2;
-    velocidadeBolaX = -velocidadeBolaX; 
+    velocidadeBolaX = -velocidadeBolaX; // Inverte o lado que a bola sai
 }
 
 // Desenha tudo na tela a cada quadro
 function desenharTudo() {
-    // Quadra
+    // 1. Apaga a tela desenhando a quadra preta
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Rede
+    // 2. Rede
     ctx.fillStyle = "white";
     for (let i = 0; i < canvas.height; i += 40) {
         ctx.fillRect(canvas.width / 2 - 1, i, 2, 20);
     }
 
-    // Raquetes
+    // 3. Raquetes
     ctx.fillRect(0, raqueteJogadorY, raqueteLargura, raqueteAltura);
     ctx.fillRect(canvas.width - raqueteLargura, raqueteComputadorY, raqueteLargura, raqueteAltura);
 
-    // Bolinha
+    // 4. Bolinha
     ctx.beginPath();
     ctx.arc(bolaX, bolaY, raioBola, 0, Math.PI * 2, true);
     ctx.fill();
 
-    // Placar
+    // 5. Placar
     ctx.font = "40px Arial";
     ctx.fillText(pontuacaoJogador, 200, 60);
     ctx.fillText(pontuacaoComputador, 600, 60);
