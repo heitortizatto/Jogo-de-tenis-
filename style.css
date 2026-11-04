@@ -2,14 +2,17 @@ body {
     margin: 0;
     padding: 0;
     display: flex;
-    justify-content: center; /* Centraliza horizontalmente */
-    align-items: center;     /* Centraliza verticalmente */
+    justify-content: center;
+    align-items: center;
     height: 100vh;
-    background-color: #222;  /* Fundo cinza escuro fora da quadra */
+    background-color: #222;
+    overflow: hidden; /* Evita que a tela crie barras de rolagem */
 }
 
 canvas {
-    /* Adiciona uma sombra em volta da quadra para dar um efeito legal */
-    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.8); 
+    background-color: black;
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.8);
+    /* Estas duas linhas fazem o jogo encolher para caber em telas menores (celular) */
+    max-width: 100%;
+    max-height: 100vh;
 }
-
