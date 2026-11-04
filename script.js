@@ -14,29 +14,43 @@ const raqueteAltura = 100;
 let raqueteJogadorY = 250;     
 let raqueteComputadorY = 250;  
 
-// Placar
-let pontuacaoJogador = 0;
-let pontuacaoComputador = 0;
+// Tabela de pontuação no formato real de Tênis
+const tabelaTenis = ["0", "15", "30", "40"];
+let pontosJogador = 0;
+let pontosComputador = 0;
+let mensagemVitoria = "";
 
-// CONTROLE 1: Mouse
+// CONTROLE 1: Mouse (Computador)
 canvas.addEventListener('mousemove', function(evento) {
     let retangulo = canvas.getBoundingClientRect();
-    let escalaY = canvas.height / retangulo.height; // Calcula a proporção da tela
+    let escalaY = canvas.height / retangulo.height;
     let mousePosY = (evento.clientY - retangulo.top) * escalaY;
     raqueteJogadorY = mousePosY - (raqueteAltura / 2); 
 });
 
 // CONTROLE 2: Toque na tela (Celular)
 canvas.addEventListener('touchmove', function(evento) {
-    evento.preventDefault(); // Impede a tela do celular de rolar
+    evento.preventDefault();
     let retangulo = canvas.getBoundingClientRect();
-    let escalaY = canvas.height / retangulo.height; // Calcula a proporção da tela
+    let escalaY = canvas.height / retangulo.height;
     let toquePosY = (evento.touches[0].clientY - retangulo.top) * escalaY;
     raqueteJogadorY = toquePosY - (raqueteAltura / 2);
 }, { passive: false });
 
-// Calcula a física, os pontos e o movimento
+// Reinicia o jogo ao clicar na tela após o fim de uma partida
+canvas.addEventListener('click', function() {
+    if (mensagemVitoria !== "") {
+        pontosJogador = 0;
+        pontosComputador = 0;
+        mensagemVitoria = "";
+        resetarBola();
+    }
+});
+
 function moverTudo() {
+    // Para o movimento da bola se a partida tiver acabado
+    if (mensagemVitoria !== "") return;
+
     bolaX += velocidadeBolaX;
     bolaY += velocidadeBolaY;
 
@@ -48,42 +62,48 @@ function moverTudo() {
         raqueteComputadorY -= 6;
     }
 
-    // Faz a bola quicar no teto e no chão
+    // Quicar no teto e no chão
     if (bolaY > canvas.height || bolaY < 0) {
         velocidadeBolaY = -velocidadeBolaY;
     }
 
-    // Verifica se a bola bateu na esquerda (Sua raquete ou Ponto do PC)
+    // Bola bateu na esquerda (Jogador)
     if (bolaX < 0) {
         if (bolaY > raqueteJogadorY && bolaY < raqueteJogadorY + raqueteAltura) {
-            velocidadeBolaX = -velocidadeBolaX; // Rebateu!
+            velocidadeBolaX = -velocidadeBolaX;
         } else {
-            pontuacaoComputador++; // PC fez ponto
-            resetarBola();
+            pontosComputador++;
+            if (pontosComputador >= 4) {
+                mensagemVitoria = "COMPUTADOR VENCEU O GAME!";
+            } else {
+                resetarBola();
+            }
         }
     }
 
-    // Verifica se a bola bateu na direita (Raquete do PC ou Seu Ponto)
+    // Bola bateu na direita (Computador)
     if (bolaX > canvas.width) {
         if (bolaY > raqueteComputadorY && bolaY < raqueteComputadorY + raqueteAltura) {
-            velocidadeBolaX = -velocidadeBolaX; // PC rebateu!
+            velocidadeBolaX = -velocidadeBolaX;
         } else {
-            pontuacaoJogador++; // Você fez ponto!
-            resetarBola();
+            pontosJogador++;
+            if (pontosJogador >= 4) {
+                mensagemVitoria = "VOCÊ VENCEU O GAME!";
+            } else {
+                resetarBola();
+            }
         }
     }
 }
 
-// Devolve a bola para o centro após um ponto
 function resetarBola() {
     bolaX = canvas.width / 2;
     bolaY = canvas.height / 2;
-    velocidadeBolaX = -velocidadeBolaX; // Inverte o lado que a bola sai
+    velocidadeBolaX = -velocidadeBolaX;
 }
 
-// Desenha tudo na tela a cada quadro
 function desenharTudo() {
-    // 1. Apaga a tela desenhando a quadra preta
+    // 1. Quadra
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -93,27 +113,41 @@ function desenharTudo() {
         ctx.fillRect(canvas.width / 2 - 1, i, 2, 20);
     }
 
-    // 3. Raquetes
+    // 3. Raquete do Jogador (Rosa)
+    ctx.fillStyle = "hotpink";
     ctx.fillRect(0, raqueteJogadorY, raqueteLargura, raqueteAltura);
+
+    // 4. Raquete do Computador (Branca)
+    ctx.fillStyle = "white";
     ctx.fillRect(canvas.width - raqueteLargura, raqueteComputadorY, raqueteLargura, raqueteAltura);
 
-    // 4. Bolinha
+    // 5. Bolinha
     ctx.beginPath();
     ctx.arc(bolaX, bolaY, raioBola, 0, Math.PI * 2, true);
     ctx.fill();
 
-    // 5. Placar
+    // 6. Placar em formato de Tênis (0, 15, 30, 40)
     ctx.font = "40px Arial";
-    ctx.fillText(pontuacaoJogador, 200, 60);
-    ctx.fillText(pontuacaoComputador, 600, 60);
+    ctx.fillStyle = "hotpink"; // Placar do jogador em rosa
+    ctx.fillText(tabelaTenis[pontosJogador] || "40", 200, 60);
+
+    ctx.fillStyle = "white";   // Placar do computador em branco
+    ctx.fillText(tabelaTenis[pontosComputador] || "40", 600, 60);
+
+    // Exibe a mensagem quando alguém vence o Game
+    if (mensagemVitoria !== "") {
+        ctx.font = "32px Arial";
+        ctx.fillStyle = "yellow";
+        ctx.fillText(mensagemVitoria, canvas.width / 2 - 210, canvas.height / 2);
+        ctx.font = "18px Arial";
+        ctx.fillText("Clique ou toque na tela para jogar novamente", canvas.width / 2 - 170, canvas.height / 2 + 40);
+    }
 }
 
-// Cria o "motor" do jogo
 function loopDoJogo() {
     moverTudo();
     desenharTudo();
     requestAnimationFrame(loopDoJogo);
 }
 
-// Inicia o jogo
 loopDoJogo();
